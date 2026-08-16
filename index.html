@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#b91c1c">
-  <title>いろんな学校Map Vertion1.04</title>
+  <title>いろんな学校Map Vertion1.07</title>
   <style>
     :root{--red:#b91c1c;--red2:#dc2626;--ink:#172033;--muted:#5b6475;--line:#d9deea;--paper:#fff;--soft:#f6f8fc;--blue:#2374d8;--girl:#e35775;--focus:#075985;--shadow:0 10px 28px rgba(23,32,51,.10)}
     *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:#eef2f7;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;line-height:1.55}
@@ -705,7 +705,7 @@
   <header class="topbar">
     <button class="brand brand-button" id="aboutBtn" type="button" aria-haspopup="dialog" aria-label="いろんな学校Mapについて" title="いろんな学校Mapについて"><div class="brand-mark" aria-hidden="true">M</div><div><h1>いろんな学校Map</h1><p>全国の学校を地図でみてみよう</p></div></button>
     <button class="btn btn-soft final-help" id="helpBtn" type="button" aria-haspopup="dialog">？ 使い方</button>
-    <div class="top-actions"><button class="top-reset" id="selectionReset" type="button" disabled>↺ 選択をリセット</button><button class="print-btn" id="printBtn" type="button" disabled>🖨 印刷</button><span class="version">Vertion1.04</span></div><button class="home-btn" id="homeBtn" type="button" aria-label="日本全国の地図に戻る" title="ホーム"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2 2.5 11h2.3v9.2h5.3v-5.7h3.8v5.7h5.3V11h2.3L12 3.2Z"/></svg></button>
+    <div class="top-actions"><button class="top-reset" id="selectionReset" type="button" disabled>↺ 選択をリセット</button><button class="print-btn" id="printBtn" type="button" disabled>🖨 印刷</button><span class="version">Vertion1.07</span></div><button class="home-btn" id="homeBtn" type="button" aria-label="日本全国の地図に戻る" title="ホーム"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2 2.5 11h2.3v9.2h5.3v-5.7h3.8v5.7h5.3V11h2.3L12 3.2Z"/></svg></button>
   </header>
   <header class="print-report-header" aria-hidden="true"><div class="print-report-mark">M</div><div class="print-report-title"><h1>いろんな学校Map</h1><p>全国の学校を地図でみてみよう</p></div></header>
   <p class="print-selected-regions" id="printSelectedRegions" aria-hidden="true"></p>
@@ -864,17 +864,46 @@ function scheduleSchoolDetailRefresh(delay=160,restart=false){if(schoolLayerRefr
 function syncSchoolLayerForView(){if(svg.classList.contains("school-detail-map")&&(svg.classList.contains("panning")||performance.now()<suppressClickUntil)){keepSchoolPointSize();scheduleSchoolDetailRefresh();return}syncSchoolDetailLayer()}
 function schoolClusterLevel(){return Math.max(0,Math.round(Math.log2(Math.max(1,zoomRatio()))*2))}
 function schoolClusterCellSize(){return 44/2**(schoolClusterLevel()/2)}
+function schoolMarkerRadius(count){return count<=1?7.5:schoolClusterVisualSize(count).radius}
+function schoolCircleOverlapArea(radiusA,radiusB,distance){
+  const small=Math.min(radiusA,radiusB),large=Math.max(radiusA,radiusB);
+  if(distance>=small+large)return 0;
+  if(distance<=large-small)return Math.PI*small*small;
+  const d2=distance*distance,rA2=radiusA*radiusA,rB2=radiusB*radiusB,clamp=value=>Math.max(-1,Math.min(1,value));
+  const angleA=Math.acos(clamp((d2+rA2-rB2)/(2*distance*radiusA))),angleB=Math.acos(clamp((d2+rB2-rA2)/(2*distance*radiusB)));
+  const lens=Math.sqrt(Math.max(0,(-distance+radiusA+radiusB)*(distance+radiusA-radiusB)*(distance-radiusA+radiusB)*(distance+radiusA+radiusB)));
+  return rA2*angleA+rB2*angleB-lens/2
+}
+function schoolCirclesHideHalf(left,right){
+  const distance=Math.hypot(left.px-right.px,left.py-right.py),small=Math.min(left.radius,right.radius);
+  if(distance>=left.radius+right.radius)return false;
+  return schoolCircleOverlapArea(left.radius,right.radius,distance)>=Math.PI*small*small*.5
+}
 function schoolPointOverlapClusters(items){
   if(items.length<2)return items.map(item=>[item]);
-  const collisionDistance=16/Math.max(.001,currentMapScale()),cellSize=Math.max(.0001,collisionDistance),parent=items.map((_,index)=>index),cells=new Map();
-  const root=index=>{while(parent[index]!==index){parent[index]=parent[parent[index]];index=parent[index]}return index};
-  const unite=(left,right)=>{const a=root(left),b=root(right);if(a!==b)parent[b]=a};
-  items.forEach((item,index)=>{const cellX=Math.floor(item.x/cellSize),cellY=Math.floor(item.y/cellSize);for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const neighbors=cells.get(`${cellX+dx}:${cellY+dy}`)||[];neighbors.forEach(other=>{const point=items[other];if(Math.hypot(item.x-point.x,item.y-point.y)<collisionDistance)unite(index,other)})}const key=`${cellX}:${cellY}`;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(index)});
-  const groups=new Map();items.forEach((item,index)=>{const key=root(index);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(item)});return[...groups.values()]
+  const scale=Math.max(.001,currentMapScale());
+  let clusters=items.map(item=>({items:[item],sumX:item.x,sumY:item.y,px:item.x*scale,py:item.y*scale,radius:schoolMarkerRadius(1)}));
+  while(clusters.length>1){
+    clusters.sort((left,right)=>left.px-right.px);
+    const parent=clusters.map((_,index)=>index),root=index=>{while(parent[index]!==index){parent[index]=parent[parent[index]];index=parent[index]}return index},unite=(left,right)=>{const a=root(left),b=root(right);if(a!==b)parent[b]=a},maxRadius=Math.max(...clusters.map(cluster=>cluster.radius));
+    for(let left=0;left<clusters.length;left++)for(let right=left+1;right<clusters.length;right++){
+      const a=clusters[left],b=clusters[right];
+      if(b.px-a.px>a.radius+maxRadius)break;
+      if(Math.abs(a.py-b.py)>=a.radius+b.radius)continue;
+      if(schoolCirclesHideHalf(a,b))unite(left,right)
+    }
+    const groups=new Map();clusters.forEach((cluster,index)=>{const key=root(index);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(cluster)});
+    if(groups.size===clusters.length)break;
+    clusters=[...groups.values()].map(group=>{
+      const mergedItems=group.flatMap(cluster=>cluster.items),sumX=group.reduce((sum,cluster)=>sum+cluster.sumX,0),sumY=group.reduce((sum,cluster)=>sum+cluster.sumY,0),count=mergedItems.length;
+      return{items:mergedItems,sumX,sumY,px:sumX/count*scale,py:sumY/count*scale,radius:schoolMarkerRadius(count)}
+    })
+  }
+  return clusters.map(cluster=>cluster.items)
 }
 function schoolPointKey(field,city,index){return `${field}|${city}|${index}`}
 function schoolPointUnit(field){return field==="n"?"所":field==="c"||field==="k"?"園":"校"}
-function schoolClusterVisualSize(count){const digits=String(Math.max(0,Math.trunc(count))).length;if(digits<=1)return{radius:11,font:8.5};if(digits===2)return{radius:28,font:10};if(digits===3)return{radius:70,font:14};return{radius:90,font:14}}
+function schoolClusterVisualSize(count){const schoolCount=Math.max(0,Math.trunc(count)),baseRadius=11;if(schoolCount<=9)return{radius:baseRadius,font:8.5};const areaScale=Math.pow(5,Math.log10(schoolCount/9)),radius=baseRadius*Math.sqrt(areaScale);return{radius,font:schoolCount<100?10:14}}
 function applySchoolPointFilter(){svg.querySelectorAll(".school-link").forEach(link=>{const hidden=!schoolPointFilterField||link.dataset.schoolField!==schoolPointFilterField;link.classList.toggle("school-filter-hidden",Boolean(hidden));if(hidden)link.classList.remove("school-list-hover")})}
 function setSchoolPointFilter(field=""){const next=SCHOOL_POINT_ORDER.includes(field)?field:"";if(next===schoolPointFilterField){applySchoolPointFilter();return}schoolPointFilterField=next;schoolLayerViewKey="";if(svg.classList.contains("school-detail-map"))syncSchoolDetailLayer(true)}
 function highlightSchoolPoint(field,city,index,on=true){if(!field||!city||index==null)return;const target=svg.querySelector(`.school-link[data-school-field="${field}"][data-school-city="${city}"][data-school-index="${index}"]`)||schoolPointClusterLookup.get(schoolPointKey(field,city,index));if(target)target.classList.toggle("school-list-hover",on)}
