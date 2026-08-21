@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#b91c1c">
-<title>いろんな学校Map Vertion1.13</title>
+<title>いろんな学校Map Vertion1.15</title>
   <style>
     :root{--red:#b91c1c;--red2:#dc2626;--ink:#172033;--muted:#5b6475;--line:#d9deea;--paper:#fff;--soft:#f6f8fc;--blue:#2374d8;--girl:#e35775;--focus:#075985;--shadow:0 10px 28px rgba(23,32,51,.10)}
     *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:#eef2f7;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;line-height:1.55}
@@ -487,7 +487,7 @@
     /* V0.49: 選択地域の情報と地図をA4縦で印刷 */
     .print-btn{min-height:40px;padding:7px 11px;border:1px solid rgba(255,255,255,.62);border-radius:10px;background:rgba(255,255,255,.16);color:#fff;font-size:12px;font-weight:900;white-space:nowrap}
     .print-btn:hover:not(:disabled),.print-btn:focus-visible{background:#fff;color:#991b1b;outline:3px solid rgba(255,255,255,.32)}.print-btn:disabled{opacity:.45;cursor:not-allowed}
-    .top-actions{display:flex;align-items:center;gap:8px;margin-left:auto}.top-actions .top-reset{margin-left:0}.license-btn{min-height:40px;padding:7px 11px;border:1px solid rgba(255,255,255,.62);border-radius:10px;background:rgba(255,255,255,.16);color:#fff;font-size:12px;font-weight:900;white-space:nowrap;cursor:pointer}.license-btn:hover,.license-btn:focus-visible{background:#fff;color:#991b1b;outline:3px solid rgba(255,255,255,.32)}
+    .top-actions{display:flex;align-items:center;gap:8px;margin-left:auto}.top-actions .top-reset{margin-left:0}.license-btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:40px;padding:7px 11px;border:1px solid rgba(255,255,255,.62);border-radius:10px;background:rgba(255,255,255,.16);color:#fff;font-size:12px;font-weight:900;line-height:1.15;text-align:center;white-space:normal;cursor:pointer}.license-btn:hover,.license-btn:focus-visible{background:#fff;color:#991b1b;outline:3px solid rgba(255,255,255,.32)}
     .print-map-heading,.print-map-brand,.print-report-header,.print-selected-regions,.facility-print-pages{display:none}
     /* V0.77: 印刷前の淡色地図読み込み進捗 */
     .print-loading[hidden]{display:none!important}
@@ -706,22 +706,31 @@
     .map-controls,.map-control,.zoom-slider-wrap,.zoom-slider{touch-action:none}
     .map-wrap a{touch-action:manipulation}
 
-    /* V1.13: 縦長画面の地図・情報切り替えと、学校種表示中の選択表示制御 */
+    /* V1.14: iPad Safariの行政界端点と、縦長画面の地図・情報切り替えを修正 */
 .map-wrap.facility-selection-locked .zoom-level,
 body.facility-selection-active .zoom-level{display:none!important}
     #mapSvg .school-link.school-touch-armed .school-dot{stroke:#111827;stroke-width:3;filter:none}
-    .portrait-pane-guide,.portrait-info-return{display:none}
+    #mapSvg .pref-border,
+    #mapSvg .national-coast,
+    #mapSvg .school-city-border,
+    #mapSvg .school-city-border path,
+    #mapSvg .municipality-boundary-overlay,
+    #mapSvg .municipality-boundary-overlay path{stroke-linecap:butt!important}
+    .portrait-view-switch{display:none}
     @media (max-width:1099px) and (orientation:portrait){
-      .workspace{display:block;position:relative;overflow:hidden}
+      body{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+      .workspace{display:block;position:relative;overflow:visible}
       .workspace>.map-panel,.workspace>.side-panel{width:100%;min-width:0}
-      .workspace>.side-panel{display:none!important;height:calc(100dvh - 72px)!important;min-height:0!important;overflow:auto;overscroll-behavior:contain}
+      .workspace>.map-panel .map-wrap,.workspace>.map-panel #mapSvg{height:max(430px,calc(100dvh - 150px - env(safe-area-inset-bottom)));min-height:0}
+      .workspace>.side-panel{display:none!important;height:max(430px,calc(100dvh - 150px - env(safe-area-inset-bottom)))!important;min-height:0!important;overflow:auto;overscroll-behavior:contain}
       .workspace.portrait-info-active>.map-panel{display:none}
-      .workspace.portrait-info-active>.side-panel.has-detail{display:block!important}
+      .workspace.portrait-info-active>.side-panel{display:flex!important}
       .workspace.portrait-info-active>.splitter{display:none}
-      .portrait-pane-guide{display:flex;position:absolute;z-index:16;right:12px;bottom:50px;left:12px;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border:1px solid #b7c7db;border-radius:12px;background:rgba(255,255,255,.94);box-shadow:0 3px 12px rgba(15,23,42,.16);font-size:12px;font-weight:700;color:#4a5870;touch-action:pan-y}
-      .portrait-pane-guide button{min-height:40px;padding:7px 12px;border:0;border-radius:10px;background:#0b6896;color:#fff;font:inherit;font-size:13px;white-space:nowrap}
-      .portrait-info-return{display:flex;position:sticky;z-index:20;top:0;width:100%;min-height:48px;align-items:center;justify-content:center;gap:10px;border:0;border-bottom:2px solid #b91c1c;background:#fff1f2;color:#991b1b;font-size:16px;font-weight:900;touch-action:pan-y}
-      .portrait-info-return small{font-size:11px;font-weight:700;color:#59677c}
+      .portrait-view-switch{display:grid;position:fixed;z-index:80;right:calc(12px + env(safe-area-inset-right));bottom:calc(8px + env(safe-area-inset-bottom));left:calc(12px + env(safe-area-inset-left));grid-template-columns:1fr 1fr;gap:6px;padding:6px;border:1px solid #c7cfdb;border-radius:16px;background:rgba(255,255,255,.96);box-shadow:0 8px 28px rgba(15,23,42,.25);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+      .portrait-view-switch button{min-height:50px;border:0;border-radius:11px;background:#eef2f7;color:#334155;font-weight:900;touch-action:manipulation}
+      .portrait-view-switch button[aria-pressed="true"]{background:#b91c1c;color:#fff;box-shadow:0 2px 8px rgba(127,29,29,.28)}
+      .portrait-view-switch button:disabled{opacity:.45;cursor:not-allowed}
+      .portrait-view-switch button:focus-visible{outline:3px solid rgba(7,89,133,.38);outline-offset:2px}
     }
 
   </style>
@@ -729,9 +738,9 @@ body.facility-selection-active .zoom-level{display:none!important}
 <body class="rev-lt-2 rev-lt-3 rev-lt-4 rev-lt-5 rev-lt-6 rev-lt-7 rev-lt-8 rev-lt-9 rev-lt-10 rev-lt-11">
 <div class="app">
   <header class="topbar">
-    <button class="brand brand-button" id="aboutBtn" type="button" aria-haspopup="dialog" aria-label="いろんな学校Mapについて" title="いろんな学校Mapについて"><div class="brand-mark" aria-hidden="true">M</div><div class="brand-copy"><div class="brand-title-row"><h1>いろんな学校Map</h1><span class="version">Vertion1.13</span></div><p>全国の学校を地図でみてみよう</p></div></button>
+    <button class="brand brand-button" id="aboutBtn" type="button" aria-haspopup="dialog" aria-label="いろんな学校Mapについて" title="いろんな学校Mapについて"><div class="brand-mark" aria-hidden="true">M</div><div class="brand-copy"><div class="brand-title-row"><h1>いろんな学校Map</h1><span class="version">Vertion1.15</span></div><p>全国の学校を地図でみてみよう</p></div></button>
     <button class="btn btn-soft final-help" id="helpBtn" type="button" aria-haspopup="dialog">？ 使い方</button>
-    <div class="top-actions"><button class="top-reset" id="selectionReset" type="button" disabled>↺ 選択をリセット</button><button class="print-btn" id="printBtn" type="button" disabled>🖨 印刷</button><button class="license-btn" id="externalBtn" type="button" aria-haspopup="dialog" aria-controls="externalDialog">ⓘ 外部通信・ライセンス</button></div><button class="home-btn" id="homeBtn" type="button" aria-label="日本全国の地図に戻る" title="ホーム"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2 2.5 11h2.3v9.2h5.3v-5.7h3.8v5.7h5.3V11h2.3L12 3.2Z"/></svg></button>
+    <div class="top-actions"><button class="top-reset" id="selectionReset" type="button" disabled>↺ 選択をリセット</button><button class="print-btn" id="printBtn" type="button" disabled>🖨 印刷</button><button class="license-btn" id="externalBtn" type="button" aria-haspopup="dialog" aria-controls="externalDialog" aria-label="外部通信・ライセンス"><span aria-hidden="true">ⓘ</span><span>外部通信・<br>ライセンス</span></button></div><button class="home-btn" id="homeBtn" type="button" aria-label="日本全国の地図に戻る" title="ホーム"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2 2.5 11h2.3v9.2h5.3v-5.7h3.8v5.7h5.3V11h2.3L12 3.2Z"/></svg></button>
   </header>
   <header class="print-report-header" aria-hidden="true"><div class="print-report-mark">M</div><div class="print-report-title"><h1>いろんな学校Map</h1><p>全国の学校を地図でみてみよう</p></div></header>
   <p class="print-selected-regions" id="printSelectedRegions" aria-hidden="true"></p>
@@ -742,7 +751,7 @@ body.facility-selection-active .zoom-level{display:none!important}
   </section>
   <nav class="crumbs" id="crumbs" aria-label="現在地"></nav>
   <main class="workspace">
-    <section class="panel map-panel" aria-label="日本全国の自治体と学校の地図">
+    <section class="panel map-panel" id="mapPanel" aria-label="日本全国の自治体と学校の地図">
       <div class="print-map-heading"><header class="print-map-brand" aria-hidden="true"><span>M</span><div><strong>いろんな学校Map</strong><small>全国の学校を地図でみてみよう</small></div></header><h2 id="printMapTitle">選択した地域の地図</h2><p id="printMapNames"></p></div>
       <div class="map-wrap">
         <svg id="mapSvg" viewBox="0 0 760 570" role="img" aria-label="日本全国の自治体と学校の地図" aria-describedby="mapDesc"><desc id="mapDesc">通常時は自治体をグレーで表示し、選択した地域だけを淡色地図で示す日本地図。複数選択は重複を除いて合計し、施設カードを押すと選んだ種類の施設位置だけを表示します</desc><text x="380" y="285" text-anchor="middle" fill="#68758a">地図を準備しています…</text></svg>
@@ -751,18 +760,20 @@ body.facility-selection-active .zoom-level{display:none!important}
         <div class="map-controls" aria-label="地図の拡大と縮小"><button class="map-control" id="zoomIn" type="button" aria-label="地図を拡大" title="拡大">＋</button><label class="zoom-slider-wrap" title="拡大率"><span class="visually-hidden">地図の拡大率</span><input class="zoom-slider" id="zoomSlider" type="range" min="0" max="1000" step="1" value="77" aria-label="地図の拡大率" aria-valuetext="拡大率 100％"></label><button class="map-control" id="zoomOut" type="button" aria-label="地図を縮小" title="縮小">−</button><button class="map-control fit-control" id="fitSelected" type="button" aria-label="選択した地域を画面いっぱいに表示" title="選択範囲に合わせる" disabled>FIT</button></div>
         <div class="map-scale" id="mapScale" aria-label="地図の縮尺"><span class="map-scale-line" id="mapScaleLine"></span><span class="map-scale-label" id="mapScaleLabel">100 km</span></div>
         <div class="zoom-level" id="zoomLevel" aria-live="polite" aria-atomic="true"><span class="zoom-value">拡大率 100％</span><strong class="selection-target">日本全体選択</strong></div>
-        <div class="portrait-pane-guide" id="portraitPaneGuide" aria-label="縦長画面の表示切り替え"><span>右端から左へスワイプ</span><button id="portraitInfoOpen" type="button" aria-expanded="false">学校・統計を見る →</button></div>
       </div>
     </section>
     <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" aria-label="地図と情報欄の幅を調整" aria-valuemin="25" aria-valuemax="75" aria-valuenow="60" aria-valuetext="地図60％、情報欄40％" tabindex="0" title="左右にドラッグして幅を調整。ダブルクリックで地図3/5・情報欄2/5に戻します"></div>
     <aside class="panel side-panel" id="sidePanel" aria-live="polite">
-      <button class="portrait-info-return" id="portraitInfoReturn" type="button">← 地図へ <small>右へスワイプでも戻れます</small></button>
       <div class="side-content show" id="sideContent"><section class="detail" id="detail"><div class="detail-placeholder"><div><div class="placeholder-icon" aria-hidden="true">☝️</div><h2>地図上の市町村を選んでください。</h2><p>市町村にマウスを置くと、人口や学校などの情報がここに表示されます。タッチ画面では市町村をタップしてください。</p></div></div></section></div>
   <footer class="sources side-sources" id="sources">
     <details open><summary>データの出典・読み方・注意点</summary><ul><li>人口、男女別・5歳階級別人口、面積：総務省統計局「統計ダッシュボードAPI」（国勢調査・社会人口統計体系、2020年）。</li><li>幼稚園、小・中・義務教育・高等・中等教育学校、高専、短期大学、大学：国土交通省「<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-P29-2023.html" target="_blank" rel="noopener noreferrer">国土数値情報・学校データ</a>」（2023年度）。同じ市町村では学校コードごとに1校とし、休校中は除外しています。大学・短期大学はキャンパス所在地の市町村ごとに集計されます。</li><li>学校の設置者内訳は、国・都道府県・市区町村を「国公立」、元データの管理者コード「民間」を、学校基本調査で一般的な「私立」と表示します。中等教育学校は独立した学校種で、併設型・連携型の中高一貫校は「中学校」と「高等学校」に含まれるため別には足しません。</li><li>通信制高校：正式な高等学校は「高等学校」に含みますが、元データに課程区分がないため通信制だけには分けません。通信教育連携協力施設とサポート校は学校数に加えません。</li><li>認定こども園・保育所等：国土交通省「<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-P14-2023.html" target="_blank" rel="noopener noreferrer">国土数値情報・福祉施設データ</a>」（2023年度）。認定こども園は幼保連携型・保育所型・幼稚園型・地方裁量型、保育所等は保育所・へき地保育所です。同名・同住所・同区分の重複を除いて集計します。</li><li>こども園・保育所等の管理者内訳は、国・都道府県・市区町村を「公営」、民間・法人を「私営」、その他・不明を「その他」と表示します。学校の設置者区分とは異なり、福祉施設データの管理者区分に合わせています。自治体提供資料を基にした位置データのため、最新の開設・廃止状況と異なる場合があります。</li><li>各施設カードを押すと、同じ原データにある施設名と所在地の一覧を表示し、地図には選んだ種類の施設だけを描きます。カードを押すまでは施設の●を生成しません。複数選択した日本全国・都道府県・市町村は、重複を除いた一つの合計地域として扱います。密集地では件数にまとめ、桁数に合わせた小さな円で表示し、拡大すると個別の色付き●へ切り替えます。全国・都道府県では検索でき、一度に200件ずつ表示します。学校・福祉施設データにはホームページURLがないため、施設名リンクと地図上の学校点は「施設名＋自治体名＋公式サイト」の検索結果を開きます。検索結果が公式サイトか確認してください。施設の●は2023年度の学校・福祉施設データの位置を、現在の施設一覧と照合して表示します。</li><li>図書館数：社会人口統計体系G1401（2021年）。図書館法上の図書館が対象で、学校附属図書館・図書室は含みません。設置者別表と施設名一覧は市町村単位ではないため表示しません。</li><li>全国・都道府県・市町村合計は、市町村別統計をこのアプリで加算した値です。人口・面積は2020年、学校・保育施設は2023年度、図書館は2021年で統計年が異なります。</li><li>行政区域：通常表示は国土数値情報を加工した SmartNews Media Research Institute「japan-topography」（2021年1月、簡素化0.1%）です。地域を選択すると、拡大率にかかわらず選択範囲だけに国土地理院の<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener noreferrer">淡色地図・白地図タイル</a>を表示し、周囲はグレーにし、画面内に見えている市町村境は国土地理院の行政界タイルで補います。複数地域は市町村単位で重複を除いた一つの範囲として表示します。選択範囲の黒い境界は、国土交通省「国土数値情報（行政区域データ）」を大学共同利用機関法人 情報・システム研究機構 国立情報学研究所が加工した<a href="https://geoshape.ex.nii.ac.jp/city/" target="_blank" rel="noopener noreferrer">Geoshapeリポジトリ 市区町村境界</a>（2023年、CC BY-SA 4.0、TopoJSON形式）を使用します。地理院タイルと精密境界の表示にはインターネット接続が必要で、取得できない場合は通常表示の境界を使用します。</li><li>公式サイト：日本全国は国内向けの「<a href="https://www.gov-online.go.jp/" target="_blank" rel="noopener noreferrer">政府広報オンライン</a>」、都道府県はデジタル庁「<a href="https://www.e-gov.go.jp/government-directory/local-governments.html" target="_blank" rel="noopener noreferrer">e-Gov 地方公共団体リンク集</a>」、市町村はLANDWATCH「市区町村のホームページ一覧」を参照しています。リンク先は新しいタブで開きます。</li><li>人口密度は「総人口 ÷ 総面積」でこのアプリが計算。統計年と境界年が異なるため、学習用の概観として利用してください。</li></ul></details>
   </footer>
     </aside>
   </main>
+  <nav class="portrait-view-switch" id="portraitViewSwitch" aria-label="縦長画面の表示切り替え">
+    <button id="portraitMapButton" type="button" aria-controls="mapPanel" aria-pressed="true">🗺 地図</button>
+    <button id="portraitInfoButton" type="button" aria-controls="sidePanel" aria-pressed="false" disabled>📊 人口・学校</button>
+  </nav>
   <section class="facility-print-pages" id="facilityPrintPages" aria-hidden="true"></section>
 </div>
 <div class="status" id="status" role="status" aria-live="polite"></div><div class="print-loading" id="printLoading" hidden role="status" aria-live="assertive" aria-atomic="true"><div class="print-loading-card"><strong>淡色地図を読み込んでいます</strong><p id="printLoadingMessage">お待ちください。現在0％完了</p><div class="print-loading-track" id="printLoadingTrack" role="progressbar" aria-label="淡色地図の読み込み状況" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span class="print-loading-bar" id="printLoadingBar"></span></div></div></div>
@@ -773,8 +784,8 @@ body.facility-selection-active .zoom-level{display:none!important}
 <dialog class="help external-dialog" id="externalDialog"><div class="help-head"><h2>外部通信・ライセンス</h2><button class="close-x" id="externalClose" aria-label="閉じる">×</button></div><div class="external-license-body"><p class="external-summary">このアプリは、地図や最新の集計を表示するために3種類の外部サービスへ通信します。主な人口・施設データはHTML内に収録しており、外部CSVやCDNライブラリは読み込んでいません。</p><div class="external-grid"><section class="external-card external-wide"><h3>画面を使うときに通信するサービス</h3><ul><li><b>統計ダッシュボードAPI：</b>児童・生徒数、教員数、学級数などの集計にJSONを利用します。<a href="https://dashboard.e-stat.go.jp/static/api" target="_blank" rel="noopener noreferrer">API仕様</a> ／ <a href="https://dashboard.e-stat.go.jp/static/terms" target="_blank" rel="noopener noreferrer">利用規約</a><br>「このサービスは、統計ダッシュボードのAPI機能を使用していますが、サービスの内容は国によって保証されたものではありません。」</li><li><b>国土地理院：</b>淡色地図・白地図のPNGタイルを表示します。出典表示が必要です。<a href="https://maps.gsi.go.jp/development/" target="_blank" rel="noopener noreferrer">地理院タイル仕様</a> ／ <a href="https://www.gsi.go.jp/kikakuchousei/kikakuchousei40182.html" target="_blank" rel="noopener noreferrer">利用規約</a></li><li><b>Geoshapeリポジトリ（国立情報学研究所）：</b>精密な市区町村境界のTopoJSONを取得します。ライセンスはCC BY 4.0です。<a href="https://geoshape.ex.nii.ac.jp/city/" target="_blank" rel="noopener noreferrer">データ案内</a> ／ <a href="https://creativecommons.org/licenses/by/4.0/deed.ja" target="_blank" rel="noopener noreferrer">CC BY 4.0</a></li></ul></section><section class="external-card"><h3>HTML内に収録済みのデータ</h3><p>人口・年齢・面積（2020年）、図書館（2021年）、学校P29（2023年度）、福祉施設P14（2023年度）などを加工して収録しています。</p><p><a href="https://nlftp.mlit.go.jp/ksj/other/agreement.html" target="_blank" rel="noopener noreferrer">国土数値情報の利用規約</a><br><a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-P29-2023.html" target="_blank" rel="noopener noreferrer">学校データP29</a> ／ <a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-P14-2023.html" target="_blank" rel="noopener noreferrer">福祉施設データP14</a></p><p>通常表示用の行政区域はSmartNews Media Research Instituteの <a href="https://github.com/smartnews-smri/japan-topography" target="_blank" rel="noopener noreferrer">japan-topography</a>（MIT License）を加工しています。</p></section><section class="external-card"><h3>CSV・外部ライブラリ</h3><ul><li><b>公開CSVの外部読込：</b>なし。画面の「CSVで保存」は、このアプリ内のデータを書き出す機能です。</li><li><b>CDNライブラリ：</b>なし。CSSとJavaScriptはHTML内にあり、地図操作・グラフ・CSV保存はブラウザ標準機能で動作します。</li></ul></section></div><section class="app-license" aria-labelledby="appLicenseTitle"><h3 id="appLicenseTitle">いろんな学校Mapのライセンス</h3><p>本アプリのうち、川俣 純が著作権を有する説明文、画面デザイン、独自の編集・構成部分は、<a href="https://creativecommons.org/licenses/by/4.0/deed.ja" target="_blank" rel="license noopener noreferrer">Creative Commons 表示 4.0 国際（CC BY 4.0）</a>で提供します。</p><p><b>CC BY 4.0の対象外：</b>HTML内に収録した人口・学校・福祉施設・図書館・行政区域等の第三者データ、および実行時に外部から取得する地図・境界・統計データは、CC BY 4.0の対象外です。これらには、それぞれの提供元が定める利用条件が適用されます。</p><p>再利用・改変・再配布する場合は、本アプリの作者表示に加えて、各データ提供元が求める出典表示、加工・編集の表示、利用規約および第三者の権利に従ってください。</p><p>ライセンスは無保証であり、第三者が持つ著作権・商標権・特許権・肖像権など、すべての権利を許諾するものではありません。</p></section><p class="external-checked">内容確認：2026年8月19日</p></div></dialog>
 <script>
 "use strict";
-const REV=112;
-const VERSION="1.12";
+const REV=115;
+const VERSION="1.15";
 const MAX_SELECTIONS=40;
 const FACILITY_PRINT_ROWS_PER_PAGE=26,FACILITY_PRINT_FIRST_ROWS=22;
 let activeDetailEntity=null;
@@ -1255,10 +1266,18 @@ function setListSchoolHighlight(item,on){if(!item)return;highlightSchoolPoint(it
 detail.addEventListener("pointerover",event=>{const item=listSchoolItem(event);if(item&&!item.contains(event.relatedTarget))setListSchoolHighlight(item,true)});detail.addEventListener("pointerout",event=>{const item=listSchoolItem(event);if(item&&!item.contains(event.relatedTarget))setListSchoolHighlight(item,false)});detail.addEventListener("focusin",event=>setListSchoolHighlight(listSchoolItem(event),true));detail.addEventListener("focusout",event=>{const item=listSchoolItem(event);if(item&&!item.contains(event.relatedTarget))setListSchoolHighlight(item,false)});
 
 const sourceDetails=sourcesEl.querySelector("details");function syncPanelHeights(){sidePanel.style.height=`${Math.ceil(mapPanel.getBoundingClientRect().height)}px`}function syncSourcesForWindow(){sourceDetails.open=innerWidth>=900&&innerHeight>=760}function syncLayout(){syncPanelHeights();syncSourcesForWindow()}
+const portraitViewMedia=matchMedia("(max-width:1099px) and (orientation:portrait)"),portraitMapButton=document.getElementById("portraitMapButton"),portraitInfoButton=document.getElementById("portraitInfoButton");
+function portraitInfoAvailable(){return Boolean(activeDetailEntity||selectedEntities.length||sidePanel.classList.contains("facility-list-mode"))}
+function syncPortraitViewSwitch(){const available=portraitInfoAvailable();portraitInfoButton.disabled=!available;if(!portraitViewMedia.matches||!available)workspace.classList.remove("portrait-info-active");const infoActive=portraitViewMedia.matches&&workspace.classList.contains("portrait-info-active");portraitMapButton.setAttribute("aria-pressed",infoActive?"false":"true");portraitInfoButton.setAttribute("aria-pressed",infoActive?"true":"false")}
+function setPortraitView(view,notify=true){if(!portraitViewMedia.matches)return;const showInfo=view==="info"&&portraitInfoAvailable();if(view==="info"&&!showInfo){announce("地域を選ぶと、人口・学校の情報を表示できます");return}workspace.classList.toggle("portrait-info-active",showInfo);syncPortraitViewSwitch();requestAnimationFrame(()=>{syncPanelHeights();if(!showInfo){lastPaintWidth=NaN;applyView()}});if(notify)announce(showInfo?"人口・学校の情報を表示しました":"地図を表示しました")}
+function handlePortraitViewChange(){workspace.classList.remove("portrait-info-active");syncPortraitViewSwitch();requestAnimationFrame(()=>{lastPaintWidth=NaN;applyView();syncLayout()})}
+portraitMapButton.addEventListener("click",()=>setPortraitView("map"));portraitInfoButton.addEventListener("click",()=>setPortraitView("info"));
+if(portraitViewMedia.addEventListener)portraitViewMedia.addEventListener("change",handlePortraitViewChange);else portraitViewMedia.addListener(handlePortraitViewChange);
+const portraitDetailObserver=typeof MutationObserver!=="undefined"?new MutationObserver(syncPortraitViewSwitch):null;portraitDetailObserver?.observe(detail,{childList:true});
 let splitRatio=.6,splitPointerId=null;function splitEnabled(){return matchMedia("(min-width:1100px)").matches}function splitMetrics(){const rect=workspace.getBoundingClientRect(),style=getComputedStyle(workspace),gap=parseFloat(style.columnGap)||0,divider=splitter.getBoundingClientRect().width||14,available=Math.max(1,rect.width-divider-gap*2);return{rect,gap,divider,available}}function applySplitRatio(ratio=splitRatio){splitRatio=Math.min(.75,Math.max(.25,ratio));const percent=Math.round(splitRatio*100);splitter.setAttribute("aria-valuenow",String(percent));splitter.setAttribute("aria-valuetext",`地図${percent}％、情報欄${100-percent}％`);if(!splitEnabled()){workspace.style.removeProperty("grid-template-columns");return}const{available,divider}=splitMetrics(),left=Math.round(available*splitRatio);workspace.style.gridTemplateColumns=`${left}px ${divider}px minmax(0,1fr)`;requestAnimationFrame(syncPanelHeights)}function splitRatioFromPointer(clientX){const{rect,gap,divider,available}=splitMetrics();return(clientX-rect.left-gap-divider/2)/available}function finishSplit(event){if(splitPointerId===null)return;if(splitter.hasPointerCapture?.(splitPointerId))splitter.releasePointerCapture(splitPointerId);splitPointerId=null;splitter.classList.remove("dragging");document.body.classList.remove("split-dragging");announce(`表示幅を地図${Math.round(splitRatio*100)}％、情報欄${100-Math.round(splitRatio*100)}％にしました`)}splitter.addEventListener("pointerdown",event=>{if(!splitEnabled())return;event.preventDefault();splitPointerId=event.pointerId;splitter.setPointerCapture(event.pointerId);splitter.classList.add("dragging");document.body.classList.add("split-dragging");applySplitRatio(splitRatioFromPointer(event.clientX))});splitter.addEventListener("pointermove",event=>{if(event.pointerId===splitPointerId)applySplitRatio(splitRatioFromPointer(event.clientX))});splitter.addEventListener("pointerup",finishSplit);splitter.addEventListener("pointercancel",finishSplit);splitter.addEventListener("dblclick",()=>{applySplitRatio(.6);announce("表示幅を地図60％、情報欄40％に戻しました")});splitter.addEventListener("keydown",event=>{let next=splitRatio;if(event.key==="ArrowLeft")next-=.05;else if(event.key==="ArrowRight")next+=.05;else if(event.key==="Home")next=.25;else if(event.key==="End")next=.75;else if(event.key==="Enter"||event.key===" ")next=.6;else return;event.preventDefault();applySplitRatio(next);announce(`表示幅を地図${Math.round(splitRatio*100)}％、情報欄${100-Math.round(splitRatio*100)}％にしました`)});
 const panelResizeObserver=typeof ResizeObserver!=="undefined"?new ResizeObserver(syncPanelHeights):null;panelResizeObserver?.observe(mapPanel);addEventListener("resize",()=>{syncLayout();applySplitRatio(splitRatio)});
 const help=document.getElementById("helpDialog"),about=document.getElementById("aboutDialog"),externalDialog=document.getElementById("externalDialog");document.getElementById("revisionList").innerHTML=IMPROVEMENTS.map((x,i)=>`<li>V0.${String(i+2).padStart(2,"0")}：${x}</li>`).join("");document.getElementById("helpBtn").addEventListener("click",()=>help.showModal());document.getElementById("helpClose").addEventListener("click",()=>help.close());document.getElementById("aboutBtn").addEventListener("click",()=>about.showModal());document.getElementById("aboutClose").addEventListener("click",()=>about.close());about.addEventListener("click",event=>{if(event.target===about)about.close()});document.getElementById("externalBtn").addEventListener("click",()=>externalDialog.showModal());document.getElementById("externalClose").addEventListener("click",()=>externalDialog.close());externalDialog.addEventListener("click",event=>{if(event.target===externalDialog)externalDialog.close()});
-renderEmptyDetail();renderMap();resetView();requestAnimationFrame(()=>{applySplitRatio(.6);syncLayout()});if(REV>=6)announce(`準備完了：全国${MAP_DATA.length.toLocaleString()}市町村のデータを表示できます`);
+renderEmptyDetail();renderMap();resetView();syncPortraitViewSwitch();requestAnimationFrame(()=>{applySplitRatio(.6);syncLayout()});if(REV>=6)announce(`準備完了：全国${MAP_DATA.length.toLocaleString()}市町村のデータを表示できます`);
 </script>
 </body>
 </html>
